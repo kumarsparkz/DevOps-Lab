@@ -1,6 +1,6 @@
 # DevOps Lab - Automated Infrastructure on VMware Workstation
 
-A complete DevOps lab environment that uses **Packer** to build Windows Server gold images, **Terraform** to provision VMs on VMware Workstation, and **Ansible** to configure SQL Server 2022.
+A complete DevOps lab environment that uses **Packer** to build Windows Server gold images, **Terraform** to provision VMs on VMware Workstation, and **Ansible** to configure SQL Server 2022 - all orchestrated through **Gitness CI/CD pipelines**.
 
 ## Architecture Overview
 
@@ -80,8 +80,8 @@ Enter the same username/password you set in `.env` for `VMWARE_API_USER` and `VM
 ### Step 5: Download Windows Server 2022 ISO
 
 1. Download the evaluation ISO from [Microsoft Evaluation Center](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022)
-2. Place it in `C:\DevOps-Lab\packer\` directory
-3. Update the ISO path in `packer/win2022.pkr.hcl` if needed
+2. Place it in `C:\DevOps-Lab\packer\iso\` directory
+3. Rename it to `windows_server_2022.iso`
 
 ### Step 6: Build the Gold Image with Packer
 
@@ -97,58 +97,81 @@ Get-Content ..\.env | ForEach-Object {
 
 # Initialize and build
 packer init win2022.pkr.hcl
-packer build win2022.pkr.hcl
+packer build .
 ```
 
 This creates `output-win2022/Win2022-Gold.vmx` - your template VM.
 
-### Step 7: Start Gitness (CI/CD Platform)
+### Step 7: Start Services
 
 ```powershell
+# Start Gitness (CI/CD Platform)
 cd C:\DevOps-Lab\gitness
 docker-compose up -d
-```
 
-Access Gitness at: http://localhost:3000
-
-### Step 8: Start VMware REST API
-
-```powershell
-# Start the REST API (or it starts automatically on login via scheduled task)
+# Start VMware REST API (if not auto-started)
 & "C:\Program Files (x86)\VMware\VMware Workstation\vmrest.exe"
 ```
 
-Verify it's running: http://localhost:8697/api/vms
+Verify services are running:
+- Gitness: http://localhost:3000
+- VMware API: http://localhost:8697/api/vms
 
-### Step 9: Deploy Infrastructure with Terraform
+### Step 8: Configure Gitness Repository
 
-```powershell
-cd C:\DevOps-Lab\terraform
+1. Open http://localhost:3000
+2. Create an account and sign in
+3. Create a new project (e.g., "DevOps-Lab")
+4. Import or create a repository pointing to `C:\DevOps-Lab`
 
-# Load environment variables
-Get-Content ..\.env | ForEach-Object {
-  if ($_ -match '^([^#][^=]+)=(.*)$') {
-    [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
-  }
-}
+### Step 9: Create and Run the Pipeline
 
-terraform init
-terraform plan
-terraform apply -auto-approve
+1. In Gitness, go to your repository
+2. Navigate to **Pipelines** > **New Pipeline**
+3. Select "Use existing YAML" and point to `.harness/pipeline.yaml`
+4. Configure pipeline secrets for environment variables:
+   - `VMWARE_PASSWORD` → Your VMware API password
+   - `ANSIBLE_PASSWORD` → Your Windows admin password
+   - `SQL_SA_PASSWORD` → Your SQL SA password
+5. Click **Run Pipeline**
+
+The pipeline will automatically:
+1. Run pre-flight health checks
+2. Provision VMs with Terraform
+3. Wait for WinRM availability (up to 5 minutes)
+4. Configure SQL Server with Ansible
+5. Run smoke tests to verify deployment
+
+### Step 10: Destroy Infrastructure (When Done)
+
+To tear down all VMs, create a new pipeline run using `.harness/destroy_lab_pipeline.yaml` or run it from Gitness.
+
+---
+
+## Pipeline Stages
+
+The main pipeline (`.harness/pipeline.yaml`) executes these stages:
+
 ```
-
-### Step 10: Configure VMs with Ansible
-
-After VMs boot and WinRM is available:
-
-```powershell
-cd C:\DevOps-Lab\ansible
-
-# Update inventory.ini with actual VM IPs from Terraform output
-# Then run the playbook
-
-# From WSL or a Linux container:
-ansible-playbook -i inventory.ini site.yml
+┌─────────────────────┐
+│  Pre-Flight Check   │  Verify VMware API, Terraform, Gold Image
+└─────────┬───────────┘
+          │
+┌─────────▼───────────┐
+│ Infrastructure Build│  terraform init → terraform apply
+└─────────┬───────────┘
+          │
+┌─────────▼───────────┐
+│   Wait for WinRM    │  Poll port 5985 until VMs are ready
+└─────────┬───────────┘
+          │
+┌─────────▼───────────┐
+│  Ansible SQL Setup  │  Install & configure SQL Server 2022
+└─────────┬───────────┘
+          │
+┌─────────▼───────────┐
+│    Smoke Tests      │  Verify SQL connectivity
+└─────────────────────┘
 ```
 
 ---
@@ -173,6 +196,7 @@ C:\DevOps-Lab\
 │   └── docker-compose.yml
 ├── packer/               # Image building
 │   ├── win2022.pkr.hcl   # Packer template
+│   ├── iso/              # Place Windows ISO here
 │   ├── scripts/          # Setup scripts
 │   └── output-win2022/   # Built VM (gitignored)
 ├── scripts/              # Utility scripts
@@ -187,70 +211,50 @@ C:\DevOps-Lab\
 
 ---
 
-## Running the Full Pipeline
-
-Once everything is set up, you can run the entire deployment from Gitness:
-
-1. Open http://localhost:3000
-2. Create a new repository pointing to `C:\DevOps-Lab`
-3. Create a pipeline using `.harness/pipeline.yaml`
-4. Run the pipeline
-
-The pipeline will:
-1. Run health checks
-2. Provision VMs with Terraform
-3. Wait for WinRM availability
-4. Configure SQL Server with Ansible
-5. Run smoke tests
-
----
-
 ## Troubleshooting
 
-### VMware REST API not responding
+### Pipeline fails at health check
 ```powershell
-# Check if vmrest is running
+# Ensure VMware REST API is running
 Get-Process vmrest -ErrorAction SilentlyContinue
-
-# Restart it
 & "C:\Program Files (x86)\VMware\VMware Workstation\vmrest.exe"
 ```
 
+### Pipeline fails at Terraform
+```powershell
+# Re-configure vmrest credentials
+& "C:\Program Files (x86)\VMware\VMware Workstation\vmrest.exe" -C
+# Ensure password matches TF_VAR_vmware_password
+```
+
+### Pipeline times out waiting for WinRM
+- Check if VMs booted successfully in VMware Workstation
+- Verify WinRM is enabled in the gold image
+- Check Windows Firewall allows port 5985
+
 ### Docker/VMware conflict
 ```powershell
-# Ensure hypervisor is set correctly
 bcdedit /set hypervisorlaunchtype auto
 # Restart PC
 ```
 
-### WinRM not available on VMs
+### Gitness container not starting
 ```powershell
-# On the VM, run:
-winrm quickconfig -quiet
-winrm set winrm/config/service/auth '@{Basic="true"}'
-winrm set winrm/config/service '@{AllowUnencrypted="true"}'
-```
-
-### Terraform authentication failed
-```powershell
-# Re-configure vmrest credentials
-& "C:\Program Files (x86)\VMware\VMware Workstation\vmrest.exe" -C
-# Ensure password matches TF_VAR_vmware_password in .env
+cd C:\DevOps-Lab\gitness
+docker-compose down
+docker-compose up -d
+docker logs gitness
 ```
 
 ---
 
 ## Cleanup
 
-To destroy all lab VMs:
+**Option 1: Run destroy pipeline from Gitness**
+1. Create new pipeline using `.harness/destroy_lab_pipeline.yaml`
+2. Run the pipeline
 
-```powershell
-cd C:\DevOps-Lab\terraform
-terraform destroy -auto-approve
-```
-
-To remove everything including Gitness:
-
+**Option 2: Full cleanup including Gitness**
 ```powershell
 .\scripts\Windown-LabJunk.ps1
 ```
@@ -260,6 +264,7 @@ To remove everything including Gitness:
 ## Security Notes
 
 - Never commit `.env` files to version control
+- Configure pipeline secrets in Gitness instead of hardcoding
 - The `.env.example` file contains placeholder passwords only
 - Change all default passwords before production use
 - The lab uses unencrypted WinRM for simplicity - not suitable for production
