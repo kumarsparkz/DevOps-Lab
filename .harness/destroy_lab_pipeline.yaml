@@ -1,0 +1,6 @@
+- name: destroy_lab
+  type: script
+  spec:
+    image: hashicorp/terraform:latest
+    commands:
+      - terraform destroy -auto-approves

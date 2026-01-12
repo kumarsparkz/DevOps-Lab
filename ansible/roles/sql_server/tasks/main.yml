@@ -1,0 +1,30 @@
+---
+- name: Install SQL Server 2022 via Chocolatey
+  win_chocolatey:
+    name: "{{ sql_package }}"
+    state: present
+    package_params: "/IACCEPTSQLSERVERLICENSETERMS /SQLSYSADMINACCOUNTS=Administrator /SECURITYMODE=SQL /SAPWD={{ sql_sa_password }}"
+  become: yes
+  become_method: runas
+  become_user: Administrator
+
+- name: Open SQL Server Firewall Port (1433)
+  win_firewall_rule:
+    name: "SQL Server"
+    localport: 1433
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+
+- name: Configure SQL Server Memory Limits
+  win_shell: |
+    $sql = @"
+    EXEC sys.sp_configure N'show advanced options', N'1';
+    RECONFIGURE;
+    EXEC sys.sp_configure N'max server memory (MB)', N'{{ sql_max_memory_mb }}';
+    RECONFIGURE;
+    "@
+    Invoke-Sqlcmd -Query $sql
+  register: sql_mem_result
+  failed_when: false # Only fails if SQL isn't started yet

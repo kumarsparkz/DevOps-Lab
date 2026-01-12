@@ -1,0 +1,30 @@
+terraform {
+  required_providers {
+    vmworkstation = {
+      source = "elsudano/vmworkstation"
+    }
+  }
+}
+
+provider "vmworkstation" {
+  user     = var.vmware_user
+  password = var.vmware_password
+  url      = "http://127.0.0.1:8697/api"
+}
+
+resource "vmworkstation_vm" "lab_vms" {
+  for_each = var.vms # This is the "Magic Loop"
+
+  name            = each.value.name
+  processors      = each.value.cpus
+  memory          = each.value.memory
+  source_path     = each.value.template == "win" ? var.win_template : var.linux_template
+  
+  # This ensures the VMs start automatically
+  state           = "poweredOn"
+
+  network_adapter {
+    type          = "nat"
+    adapter_type  = "e1000"
+  }
+}

@@ -1,0 +1,5 @@
+sql_package: "sql-server-2022"
+sql_instance_name: "MSSQLSERVER"
+# Limit SQL to 32GB (32 * 1024)
+sql_max_memory_mb: 32768 
+sql_sa_password: "Password123!"

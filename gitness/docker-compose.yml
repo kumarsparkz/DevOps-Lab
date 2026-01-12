@@ -1,0 +1,21 @@
+services:
+  gitness:
+    image: harness/gitness
+    container_name: gitness
+    ports:
+      - "3000:3000"
+    volumes:
+      # Stores your Gitness database, users, and repo metadata
+      - ./data:/data
+      # Allows Gitness to spin up Terraform/Ansible "Sidecar" containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # MOUNT: Maps your Windows Lab folder to a Linux path inside Gitness
+      # This allows the health check to verify your .vmx files
+      - C:/DevOps-Lab:/git/DevOps-Lab
+    environment:
+      # Optional: Helps with large SQL installer uploads/clones
+      - GITNESS_DEBUG=true
+    extra_hosts:
+      # Ensures the container can always find your Windows 11 host
+      - "host.docker.internal:host-gateway"
+    restart: always

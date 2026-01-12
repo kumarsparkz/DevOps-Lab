@@ -1,0 +1,65 @@
+kind: pipeline
+spec:
+  stages:
+    - name: "Pre-Flight Health Check"
+      type: ci
+      spec:
+        steps:
+          - name: "Verify Environment"
+            type: script
+            spec:
+              image: curlimages/curl:latest
+              commands:
+                - chmod +x ./scripts/health_check.sh
+                - ./scripts/health_check.sh
+  
+    - name: "Infrastructure Build"
+      type: ci
+      spec:
+        steps:
+          - name: "Terraform Provision"
+            type: script
+            spec:
+              image: hashicorp/terraform:latest
+              # We navigate into the terraform folder specifically
+              working_directory: terraform
+              commands:
+                - terraform init
+                # We use host.docker.internal because Gitness is in a container
+                # and needs to talk to vmrest.exe on your Windows Host
+                - terraform apply -var="vmware_url=http://host.docker.internal:8697/api" -auto-approve
+
+    - name: "Software Configuration"
+      type: ci
+      spec:
+        steps:
+          - name: "Wait for Windows"
+            type: script
+            spec:
+              image: alpine:latest
+              commands:
+                - echo "Waiting 60 seconds for VMs to boot..."
+                - sleep 60
+
+          - name: "Ansible SQL Setup"
+            type: script
+            spec:
+              image: alpine/ansible:latest
+              # We navigate into the ansible folder specifically
+              working_directory: ansible
+              commands:
+                - ansible-playbook -i inventory.ini site.yml
+    
+    - name: "Verification"
+      type: ci
+      spec:
+        steps:
+          - name: "SQL Smoke Test"
+            type: script
+            spec:
+              image: mcr.microsoft.com/powershell:latest
+              working_directory: ansible
+              commands:
+                # Install the SQL module inside the container first
+                - pwsh -Command "Install-Module -Name SqlServer -AllowClobber -Force"
+                - pwsh -File ./smoke_test.ps1
