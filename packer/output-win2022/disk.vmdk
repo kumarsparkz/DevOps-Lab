@@ -1,7 +1,7 @@
 # Disk DescriptorFile
 version=1
 encoding="windows-1252"
-CID=beac01d4
+CID=33aa0fc6
 parentCID=ffffffff
 createType="twoGbMaxExtentSparse"
 
@@ -30,6 +30,6 @@ ddb.adapterType = "lsilogic"
 ddb.geometry.cylinders = "7832"
 ddb.geometry.heads = "255"
 ddb.geometry.sectors = "63"
-ddb.longContentID = "f070f56225b79dcc5c226d4cbeac01d4"
-ddb.uuid = "60 00 C2 95 6e 95 a6 e4-db c4 65 a7 7c 59 e2 94"
+ddb.longContentID = "870a9a5f36a3bbf8c4c102ca33aa0fc6"
+ddb.uuid = "60 00 C2 9d 61 9f f6 06-54 fc d2 73 5f 68 df d6"
 ddb.virtualHWVersion = "13"

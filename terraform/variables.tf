@@ -3,7 +3,7 @@ variable "vmware_password" { default = "yourpassword" } # Match your vmrest.exe 
 
 variable "win_template" {
   description = "Path to the Packer-generated Windows VMX"
-  default     = "C:/Lab-Packer/output-win2022/Win2022-Gold.vmx"
+  default     = "C:/DevOps-Lab/packer/output-win2022/Win2022-Gold.vmx"
 }
 
 variable "linux_template" {

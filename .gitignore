@@ -1,1 +1,4 @@
 *.iso
+output-win2022/
+packer_cache/
+gitness/data/

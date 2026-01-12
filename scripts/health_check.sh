@@ -27,7 +27,7 @@ fi
 
 # 3. Verify Packer Template exists
 # Update this path to where your Packer output actually lives
-TEMPLATE_PATH="/path/to/your/Win2022-Gold.vmx"
+default = "C:/DevOps-Lab/packer/output-win2022/Win2022-Gold.vmx"
 if [ -f "$TEMPLATE_PATH" ]; then
     echo "✅ Gold Image: Found at $TEMPLATE_PATH"
 else

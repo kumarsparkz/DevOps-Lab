@@ -8,30 +8,37 @@ packer {
 }
 
 source "vmware-iso" "win2022" {
-  iso_url          = "./iso/windows_server_2022.iso" # Update this path
-  iso_checksum     = "none" # Use the actual SHA256 for production
+  # --- ISO and OS Configuration ---
+  iso_url          = "./iso/windows_server_2022.iso"
+  iso_checksum     = "none" 
   vm_name          = "Win2022-Gold"
-  guest_os_type    = "windows2019srv-64" # VMware uses this for 2022
+  guest_os_type    = "windows2019srv-64" # Standard for WS2022
   
-  # Performance Tuning for 96GB RAM Host
-  memory           = 16384 
-  cpus             = 4
-  disk_size        = 61440 # 60GB
-  disk_adapter_type = "nvme"
+  # --- EFI & Boot Fixes ---
+  # These lines prevent the "No Media" timeout you are seeing
+  headless         = false               # Keep this false so you can see the boot happen
+  firmware         = "efi"               # Better for NVMe stability
+  boot_wait        = "5s"                # Increased wait to ensure VMware console is ready
+  boot_command     = ["<spacebar><spacebar><spacebar>"] # Multiple hits to ensure capture
   
-  # Communication
-  communicator     = "winrm"
-  winrm_username   = "Administrator"
-  winrm_password   = "Password123!"
+  # --- Performance Tuning for 96GB RAM Host ---
+  memory           = 16384               
+  cpus             = 4                   
+  disk_size        = 61440               
+  disk_adapter_type = "nvme"             
   
-  # This tells Packer to look for your unattended install file
-  floppy_files     = ["./scripts/autounattend.xml"]
+  # --- Communication ---
+  communicator     = "winrm"             
+  winrm_username   = "Administrator"     
+  winrm_password   = "Password123!"     
+  
+  # --- Automated Setup Files ---
+  floppy_files     = ["./scripts/autounattend.xml"] 
 }
 
 build {
   sources = ["source.vmware-iso.win2022"]
   
-  # This runs your Tool installation and Sysprep scripts
   provisioner "powershell" {
     scripts = [
       "./scripts/install-tools.ps1",

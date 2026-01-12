@@ -9,7 +9,15 @@ if (Get-Command choco -ErrorAction SilentlyContinue) {
     iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 }
 
-# 2. List of DevOps Tools to manage
+# 2. Force Hypervisor to launch at boot (Fixes Docker + VMware conflict)
+$bcd = bcdedit | Select-String "hypervisorlaunchtype"
+if ($bcd -notmatch "Auto") {
+    Write-Host "Setting hypervisor launch type to Auto..." -ForegroundColor Yellow
+    bcdedit /set hypervisorlaunchtype auto
+    $restartRequired = $true
+}
+
+# 3. List of DevOps Tools to manage
 $tools = @("vmware-workstation", "docker-desktop", "terraform", "packer")
 
 foreach ($tool in $tools) {
@@ -24,7 +32,7 @@ foreach ($tool in $tools) {
     }
 }
 
-# 3. Enable Windows Features (Idempotent Check)
+# 4. Enable Windows Features (Idempotent Check)
 $features = @("Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform", "HypervisorPlatform")
 
 foreach ($feature in $features) {
@@ -38,7 +46,7 @@ foreach ($feature in $features) {
     }
 }
 
-# 4. Configure VMware REST API as a Windows Service
+# 5. Configure VMware REST API as a Windows Service
 $TaskName = "VMware-Rest-API"
 $WorkstationPath = "C:\Program Files (x86)\VMware\VMware Workstation"
 $User = "admin"
@@ -54,7 +62,7 @@ if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
     Register-ScheduledTask -Action $Action -Trigger $trigger -TaskName $TaskName -User "SYSTEM" -Force
 }
 
-# 5. Final Message
+# 6. Final Message
 if ($restartRequired) {
     Write-Host "Setup complete. A RESTART is required to finalize Windows Features." -ForegroundColor Red -BackgroundColor White
 } else {

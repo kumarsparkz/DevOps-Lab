@@ -10,3 +10,6 @@ if ($driveLetter) {
 } else {
     Write-Warning "VMware Tools installer not found!"
 }
+
+# Install SQL PowerShell module for Ansible memory configuration
+Install-Module -Name SqlServer -AllowClobber -Force
