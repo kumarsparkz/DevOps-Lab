@@ -1,3 +1,5 @@
+docker exec -it gitness /bin/sh -c "nc -zv host.docker.internal 8697"
+echo "if it says Open we are good"
 # 1. Check Core DevOps Tool Versions
 Write-Host "--- Tool Versions ---" -ForegroundColor Cyan
 choco --version; docker --version; terraform --version; packer --version

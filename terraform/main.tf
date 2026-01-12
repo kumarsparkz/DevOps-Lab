@@ -25,6 +25,14 @@ resource "vmworkstation_vm" "lab_vms" {
 
   network_adapter {
     type          = "nat"
-    adapter_type  = "e1000"
+    adapter_type  = "e1000e"
   }
+}
+
+# This output creates a JSON object mapping VM names to their IP addresses
+output "vm_ips" {
+  value = {
+    for name, vm in vmworkstation_vm.lab_vms : name => vm.ip_address
+  }
+  description = "The IP addresses of the deployed lab VMs"
 }
