@@ -38,6 +38,22 @@ foreach ($tool in $tools) {
     }
 }
 
+# 3b. Add oscdimg to PATH (required for Packer CD creation)
+$oscdimgPath = "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg"
+if (Test-Path $oscdimgPath) {
+    $currentPath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+    if ($currentPath -notlike "*$oscdimgPath*") {
+        Write-Host "Adding oscdimg to system PATH..." -ForegroundColor Yellow
+        [Environment]::SetEnvironmentVariable("Path", "$currentPath;$oscdimgPath", "Machine")
+        $env:Path = "$env:Path;$oscdimgPath"
+        Write-Host "oscdimg added to PATH. You may need to restart PowerShell." -ForegroundColor Green
+    } else {
+        Write-Host "oscdimg already in PATH." -ForegroundColor Green
+    }
+} else {
+    Write-Host "Warning: oscdimg not found at expected location. Packer may fail to create CD ISO." -ForegroundColor Yellow
+}
+
 # 4. Enable Windows Features (Idempotent Check)
 $features = @("Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform", "HypervisorPlatform")
 
