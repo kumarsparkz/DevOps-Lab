@@ -21,7 +21,7 @@ A complete DevOps lab environment that uses **Packer** to build Windows Server g
 
 ```powershell
 cd C:\
-git clone https://github.com/kumarsparkz/DevOps-Lab.git
+git clone https://github.com/<org>/DevOps-Lab.git
 cd DevOps-Lab
 ```
 
