@@ -1,3 +1,27 @@
+Write-Host "--- 🛡️ Enterprise Security Audit 🛡️ ---" -ForegroundColor Cyan
+
+# 1. Check for GPO-enforced Execution Policy
+$gpoPolicy = (Get-ExecutionPolicy -List | Where-Object { $_.Scope -eq 'MachinePolicy' -and $_.ExecutionPolicy -ne 'Undefined' })
+if ($gpoPolicy) {
+    Write-Warning "Corporate Group Policy detected: Execution Policy is forced to '$($gpoPolicy.ExecutionPolicy)'. You may need to run scripts with '-ExecutionPolicy Bypass'."
+}
+
+# 2. Check for Virtualization-Based Security (VBS) / Credential Guard
+$dgInfo = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard
+if ($dgInfo.SecurityServicesRunning -contains 1) {
+    Write-Host "ℹ️ VBS/Credential Guard is ACTIVE. VMware will run in Side-by-Side mode (Hyper-V)." -ForegroundColor Blue
+}
+
+# 3. Check if AppLocker or WDAC services are running
+$appLocker = Get-Service -Name "appidsvc" -ErrorAction SilentlyContinue
+if ($appLocker -and $appLocker.Status -eq 'Running') {
+    Write-Warning "AppLocker service is running. If tools like 'terraform.exe' fail with 'Access Denied', check with your IT team for path exceptions for C:\DevOps-Lab."
+}
+
+# 4. Check for 'SYSTEM' account network restrictions (Enterprise Baseline)
+Write-Host "ℹ️ Tip: If the VMware API (vmrest) fails to start, you may need to change the Scheduled Task to run as a Local Admin instead of 'SYSTEM'." -ForegroundColor Gray
+Write-Host "--------------------------------------`n"
+
 # 1. Check/Install Chocolatey
 if (Get-Command choco -ErrorAction SilentlyContinue) {
     Write-Host "Chocolatey is already installed. Checking for upgrades..." -ForegroundColor Cyan
