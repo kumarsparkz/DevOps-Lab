@@ -27,27 +27,32 @@ source "vmware-iso" "win2022" {
   iso_checksum     = var.iso_checksum
   vm_name          = "Win2022-Gold"
   guest_os_type    = "windows2019srv-64" # Standard for WS2022
-  
+
   # --- EFI & Boot Fixes ---
-  # These lines prevent the "No Media" timeout you are seeing
-  headless         = false               # Keep this false so you can see the boot happen
-  firmware         = "efi"               # Better for NVMe stability
-  boot_wait        = "5s"                # Increased wait to ensure VMware console is ready
-  boot_command     = ["<spacebar><spacebar><spacebar>"] # Multiple hits to ensure capture
-  
-  # --- Performance Tuning for 96GB RAM Host ---
-  memory           = 16384               
-  cpus             = 4                   
-  disk_size        = 61440               
-  disk_adapter_type = "nvme"             
-  
+  headless         = false
+  firmware         = "efi"
+  boot_wait        = "3s"
+  boot_command     = ["<spacebar>"]
+
+  # --- Performance Tuning ---
+  memory           = 16384
+  cpus             = 4
+  disk_size        = 61440
+  disk_adapter_type = "nvme"
+
   # --- Communication ---
   communicator     = "winrm"
   winrm_username   = "Administrator"
-  winrm_password   = var.winrm_password     
-  
-  # --- Automated Setup Files ---
-  floppy_files     = ["./scripts/autounattend.xml"] 
+  winrm_password   = var.winrm_password
+  winrm_timeout    = "60m"              # Wait up to 60 min for Windows install
+
+  # --- Shutdown ---
+  shutdown_command = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
+  shutdown_timeout = "15m"
+
+  # --- Automated Setup Files (use CD for EFI boot) ---
+  cd_files         = ["./scripts/Autounattend.xml"]
+  cd_label         = "OEMDRV"
 }
 
 build {
