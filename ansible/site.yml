@@ -1,0 +1,14 @@
+---
+# Main playbook for DevOps Lab configuration
+- name: Configure SQL Server
+  hosts: sql_servers
+  gather_facts: yes
+  roles:
+    - sql_server
+
+- name: Configure Windows Servers
+  hosts: windows
+  gather_facts: yes
+  tasks:
+    - name: Ensure WinRM is configured
+      win_ping:

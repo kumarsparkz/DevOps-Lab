@@ -3,4 +3,4 @@
   spec:
     image: hashicorp/terraform:latest
     commands:
-      - terraform destroy -auto-approves
+      - terraform destroy -auto-approve

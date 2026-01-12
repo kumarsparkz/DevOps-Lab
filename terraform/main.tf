@@ -9,7 +9,7 @@ terraform {
 provider "vmworkstation" {
   user     = var.vmware_user
   password = var.vmware_password
-  url      = "http://127.0.0.1:8697/api"
+  url      = var.vmware_url
 }
 
 resource "vmworkstation_vm" "lab_vms" {

@@ -49,8 +49,9 @@ foreach ($feature in $features) {
 # 5. Configure VMware REST API as a Windows Service
 $TaskName = "VMware-Rest-API"
 $WorkstationPath = "C:\Program Files (x86)\VMware\VMware Workstation"
-$User = "admin"
-$Pass = "yourpassword123"
+# Credentials loaded from environment variables (set in .env file)
+$User = if ($env:VMWARE_API_USER) { $env:VMWARE_API_USER } else { "admin" }
+$Pass = if ($env:VMWARE_API_PASSWORD) { $env:VMWARE_API_PASSWORD } else { throw "VMWARE_API_PASSWORD environment variable not set. Please set it before running this script." }
 
 if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
     Write-Host "Scheduled Task '$TaskName' already exists. Skipping..." -ForegroundColor Green

@@ -38,8 +38,21 @@ spec:
             spec:
               image: alpine:latest
               commands:
-                - echo "Waiting 60 seconds for VMs to boot..."
-                - sleep 60
+                - apk add --no-cache netcat-openbsd
+                - echo "Waiting for WinRM to become available on SQL server..."
+                - |
+                  TIMEOUT=300
+                  ELAPSED=0
+                  while ! nc -z 192.168.1.50 5985 2>/dev/null; do
+                    if [ $ELAPSED -ge $TIMEOUT ]; then
+                      echo "Timeout waiting for WinRM after ${TIMEOUT}s"
+                      exit 1
+                    fi
+                    echo "Waiting for WinRM... (${ELAPSED}s elapsed)"
+                    sleep 10
+                    ELAPSED=$((ELAPSED + 10))
+                  done
+                  echo "WinRM is available!"
 
           - name: "Ansible SQL Setup"
             type: script

@@ -1,5 +1,6 @@
 sql_package: "sql-server-2022"
 sql_instance_name: "MSSQLSERVER"
-# Limit SQL to 32GB (32 * 1024)
-sql_max_memory_mb: 32768 
-sql_sa_password: "Password123!"
+# Limit SQL to 28GB to leave more headroom for OS (48GB VM - 28GB SQL = 20GB for OS)
+sql_max_memory_mb: 28672
+# Set SQL_SA_PASSWORD environment variable before running ansible-playbook
+sql_sa_password: "{{ lookup('env', 'SQL_SA_PASSWORD') | default('changeme', true) }}"

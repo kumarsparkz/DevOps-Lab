@@ -1,5 +1,18 @@
-variable "vmware_user" { default = "admin" }
-variable "vmware_password" { default = "yourpassword" } # Match your vmrest.exe password
+variable "vmware_user" {
+  description = "VMware REST API username"
+  default     = "admin"
+}
+
+variable "vmware_password" {
+  description = "VMware REST API password"
+  sensitive   = true
+  default     = ""  # Set via environment variable TF_VAR_vmware_password
+}
+
+variable "vmware_url" {
+  description = "VMware REST API URL"
+  default     = "http://127.0.0.1:8697/api"
+}
 
 variable "win_template" {
   description = "Path to the Packer-generated Windows VMX"
