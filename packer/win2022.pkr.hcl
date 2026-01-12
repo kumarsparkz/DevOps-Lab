@@ -29,10 +29,19 @@ source "vmware-iso" "win2022" {
   guest_os_type    = "windows2019srv-64" # Standard for WS2022
 
   # --- EFI & Boot Fixes ---
-  headless         = false
-  firmware         = "efi"
-  boot_wait        = "3s"
-  boot_command     = ["<spacebar>"]
+  headless          = false
+  firmware          = "efi"
+  boot_wait         = "2s"
+  boot_key_interval = "100ms"
+  # Navigate EFI Boot Manager: Down to CDROM, Enter to select, then spacebar for "Press any key"
+  boot_command      = [
+    "<spacebar>",              # Open boot menu
+    "<wait1s>",
+    "<down><down>",            # Navigate to SATA CDROM Drive
+    "<enter>",                 # Select it
+    "<wait3s>",                # Wait for "Press any key to boot from CD"
+    "<spacebar><spacebar><spacebar>"  # Press key to boot from CD
+  ]
 
   # --- Performance Tuning ---
   memory           = 16384
