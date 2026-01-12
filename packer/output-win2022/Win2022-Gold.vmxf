@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<Foundry>
-<VM>
-<VMId type="string">52 be d0 80 04 e3 a0 33-de 39 24 80 e2 30 9d 52</VMId>
-<ClientMetaData>
-<clientMetaDataAttributes/>
-<HistoryEventList/></ClientMetaData>
-<vmxPathName type="string">Win2022-Gold.vmx</vmxPathName></VM></Foundry>
