@@ -1,18 +1,37 @@
+# Windows ISO files
 *.iso
-output-win2022/
-packer_cache/
+packer/iso/
+
+# Packer output and cache
+packer/output-win2022/
+packer/packer_cache/
+
+# Gitness database
 gitness/data/
 
 # Environment files with secrets
 .env
-.env.local
-*.env
+.env.*
+!.env.example
 
 # Terraform state files
 *.tfstate
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+terraform/terraform.tfvars
 
-# Ansible retry files
+# Ansible
 *.retry
+
+# OS generated files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
