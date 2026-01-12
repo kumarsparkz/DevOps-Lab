@@ -18,7 +18,13 @@ if ($bcd -notmatch "Auto") {
 }
 
 # 3. List of DevOps Tools to manage
-$tools = @("vmware-workstation", "docker-desktop", "terraform", "packer")
+$tools = @(
+    "vmware-workstation",
+    "docker-desktop",
+    "terraform",
+    "packer",
+    "windows-adk-oscdimg"  # Required for Packer to create CD ISO for Autounattend.xml
+)
 
 foreach ($tool in $tools) {
     # Check if the package is already installed via choco
