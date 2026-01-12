@@ -26,8 +26,8 @@ else
 fi
 
 # 3. Verify Packer Template exists
-# Update this path to where your Packer output actually lives
-default = "C:/DevOps-Lab/packer/output-win2022/Win2022-Gold.vmx"
+# This uses the container-mounted path from docker-compose.yml
+TEMPLATE_PATH="/git/DevOps-Lab/packer/output-win2022/Win2022-Gold.vmx"
 if [ -f "$TEMPLATE_PATH" ]; then
     echo "✅ Gold Image: Found at $TEMPLATE_PATH"
 else

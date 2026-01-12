@@ -2,3 +2,17 @@
 output-win2022/
 packer_cache/
 gitness/data/
+
+# Environment files with secrets
+.env
+.env.local
+*.env
+
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Ansible retry files
+*.retry

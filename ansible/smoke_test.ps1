@@ -1,7 +1,7 @@
-# variables
-$server = "192.168.1.50" # The IP of your SRV-SQL-01 VM
+# Variables - use environment variables for sensitive data
+$server = if ($env:SQL_SERVER_HOST) { $env:SQL_SERVER_HOST } else { "192.168.1.50" }
 $user   = "sa"
-$pass   = "Password123!"
+$pass   = if ($env:SQL_SA_PASSWORD) { $env:SQL_SA_PASSWORD } else { throw "SQL_SA_PASSWORD environment variable not set" }
 
 Write-Host "Starting Smoke Test for $server..." -ForegroundColor Cyan
 

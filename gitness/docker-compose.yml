@@ -11,7 +11,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # MOUNT: Maps your Windows Lab folder to a Linux path inside Gitness
       # This allows the health check to verify your .vmx files
-      - C:/DevOps-Lab:/git/DevOps-Lab
+      # Use //c/ format for Windows paths with Docker Desktop
+      - //c/DevOps-Lab:/git/DevOps-Lab
     environment:
       # Optional: Helps with large SQL installer uploads/clones
       - GITNESS_DEBUG=true
